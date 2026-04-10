@@ -4,59 +4,78 @@ const email = document.getElementById('email');
 const password = document.getElementById('password');
 const password2 = document.getElementById('password2');
 
+// Add real-time validation
+[username, email, password, password2].forEach(input => {
+    input.addEventListener('input', () => {
+        validateField(input);
+    });
+});
+
 form.addEventListener('submit', e => {
     e.preventDefault();
-
-    checkInputs();
+    const isFormValid = checkInputs();
+    
+    if (isFormValid) {
+        // Success state can be handled here (e.g., show a toast or redirect)
+        alert('Account Created Successfully!');
+    }
 });
 
 function checkInputs() {
-    const usernameValue = username.value.trim();
-    const emailValue = email.value.trim();
-    const passwordValue = password.value.trim();
-    const password2Value = password2.value.trim();
+    let isValid = true;
+    if (!validateField(username)) isValid = false;
+    if (!validateField(email)) isValid = false;
+    if (!validateField(password)) isValid = false;
+    if (!validateField(password2)) isValid = false;
+    return isValid;
+}
 
-    if (usernameValue === '') {
-        setErrorFor(username, 'Username cannot be blank');
-    } else {
-        setSuccessFor(username);
+function validateField(input) {
+    const value = input.value.trim();
+    const id = input.id;
+
+    if (value === '') {
+        setErrorFor(input, `${capitalize(id)} cannot be blank`);
+        return false;
     }
 
-    if (emailValue === '') {
-        setErrorFor(email, 'Email cannot be blank');
-    } else if (!isEmail(emailValue)) {
-        setErrorFor(email, 'Not a valid email');
-    } else {
-        setSuccessFor(email);
+    if (id === 'email' && !isEmail(value)) {
+        setErrorFor(input, 'Not a valid email address');
+        return false;
     }
 
-    if (passwordValue === '') {
-        setErrorFor(password, 'Password cannot be blank');
-    } else {
-        setSuccessFor(password);
+    if (id === 'password' && value.length < 8) {
+        setErrorFor(input, 'Password must be at least 8 characters');
+        return false;
     }
 
-    if (password2Value === '') {
-        setErrorFor(password2, 'Password2 cannot be blank');
-    } else if (passwordValue !== password2Value) {
-        setErrorFor(password2, 'Passwords does not match');
-    } else {
-        setSuccessFor(password2);
+    if (id === 'password2') {
+        if (value !== password.value.trim()) {
+            setErrorFor(input, 'Passwords do not match');
+            return false;
+        }
     }
+
+    setSuccessFor(input);
+    return true;
 }
 
 function setErrorFor(input, message) {
-    const formControl = input.parentElement;
+    const formControl = input.parentElement.parentElement;
     const small = formControl.querySelector('small');
     formControl.className = 'form-control error';
     small.innerText = message;
 }
 
 function setSuccessFor(input) {
-    const formControl = input.parentElement;
+    const formControl = input.parentElement.parentElement;
     formControl.className = 'form-control success';
 }
 
 function isEmail(email) {
     return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
+}
+
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1).replace('2', ' confirmation');
 }
